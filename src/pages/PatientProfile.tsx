@@ -9,8 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/components/ui/use-toast';
-import { ArrowLeft, Edit, Save, Plus, Download, FileText, Calendar, Phone, MapPin, User } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft, Edit, Save, Plus, Download, FileText, Calendar, Phone, MapPin, User, Pill, AlertTriangle, Clock } from 'lucide-react';
+import MedicationForm from '@/components/MedicationForm';
+import AllergyForm from '@/components/AllergyForm';
+import AppointmentForm from '@/components/AppointmentForm';
+import PrescriptionGenerator from '@/components/PrescriptionGenerator';
 
 interface Patient {
   id: string;
@@ -23,6 +27,8 @@ interface Patient {
   notes: string | null;
   profile_picture_url: string | null;
   date_of_registration: string;
+  condition_diagnosis: string | null;
+  next_appointment_date: string | null;
 }
 
 interface VisitNote {
@@ -41,12 +47,43 @@ interface PatientFile {
   uploaded_at: string;
 }
 
+interface Medication {
+  id: string;
+  drug_name: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+  instructions: string;
+  status: string;
+  created_at: string;
+}
+
+interface Allergy {
+  id: string;
+  allergen: string;
+  reaction: string;
+  severity: string;
+  notes: string;
+}
+
+interface Appointment {
+  id: string;
+  appointment_date: string;
+  appointment_time: string;
+  purpose: string;
+  status: string;
+  notes: string;
+}
+
 export default function PatientProfile() {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [visitNotes, setVisitNotes] = useState<VisitNote[]>([]);
   const [patientFiles, setPatientFiles] = useState<PatientFile[]>([]);
+  const [medications, setMedications] = useState<Medication[]>([]);
+  const [allergies, setAllergies] = useState<Allergy[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [newVisitNote, setNewVisitNote] = useState('');
@@ -89,6 +126,36 @@ export default function PatientProfile() {
 
       if (filesError) throw filesError;
       setPatientFiles(filesData || []);
+
+      // Fetch medications
+      const { data: medicationsData, error: medicationsError } = await supabase
+        .from('medications')
+        .select('*')
+        .eq('patient_id', id)
+        .order('created_at', { ascending: false });
+
+      if (medicationsError) throw medicationsError;
+      setMedications(medicationsData || []);
+
+      // Fetch allergies
+      const { data: allergiesData, error: allergiesError } = await supabase
+        .from('patient_allergies')
+        .select('*')
+        .eq('patient_id', id)
+        .order('created_at', { ascending: false });
+
+      if (allergiesError) throw allergiesError;
+      setAllergies(allergiesData || []);
+
+      // Fetch appointments
+      const { data: appointmentsData, error: appointmentsError } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('patient_id', id)
+        .order('appointment_date', { ascending: true });
+
+      if (appointmentsError) throw appointmentsError;
+      setAppointments(appointmentsData || []);
     } catch (error) {
       console.error('Error fetching patient data:', error);
       toast({
@@ -300,8 +367,21 @@ export default function PatientProfile() {
       <Tabs defaultValue="details" className="space-y-6">
         <TabsList>
           <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsTrigger value="medications">
+            <Pill className="h-4 w-4 mr-2" />
+            Medications
+          </TabsTrigger>
+          <TabsTrigger value="allergies">
+            <AlertTriangle className="h-4 w-4 mr-2" />
+            Allergies
+          </TabsTrigger>
+          <TabsTrigger value="appointments">
+            <Clock className="h-4 w-4 mr-2" />
+            Appointments
+          </TabsTrigger>
           <TabsTrigger value="visits">Visit Notes</TabsTrigger>
           <TabsTrigger value="files">Files</TabsTrigger>
+          <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details" className="space-y-6">
@@ -426,6 +506,154 @@ export default function PatientProfile() {
           </div>
         </TabsContent>
 
+        <TabsContent value="medications" className="space-y-6">
+          <MedicationForm patientId={patient.id} onMedicationAdded={fetchPatientData} />
+          
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Current Medications</h3>
+            {medications.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <p className="text-muted-foreground">No medications recorded yet</p>
+                </CardContent>
+              </Card>
+            ) : (
+              medications.map((medication) => (
+                <Card key={medication.id}>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-medium">{medication.drug_name}</h4>
+                          <Badge variant={medication.status === 'active' ? 'default' : 'secondary'}>
+                            {medication.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          <span className="font-medium">Dosage:</span> {medication.dosage} • 
+                          <span className="font-medium"> Frequency:</span> {medication.frequency} • 
+                          <span className="font-medium"> Duration:</span> {medication.duration}
+                        </p>
+                        {medication.instructions && (
+                          <p className="text-sm text-muted-foreground">
+                            <span className="font-medium">Instructions:</span> {medication.instructions}
+                          </p>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(medication.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="allergies" className="space-y-6">
+          <AllergyForm patientId={patient.id} onAllergyAdded={fetchPatientData} />
+          
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Known Allergies</h3>
+            {allergies.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <p className="text-muted-foreground">No allergies recorded yet</p>
+                </CardContent>
+              </Card>
+            ) : (
+              allergies.map((allergy) => (
+                <Card key={allergy.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start space-x-3">
+                      <AlertTriangle className={`h-5 w-5 mt-0.5 ${
+                        allergy.severity === 'severe' ? 'text-red-500' :
+                        allergy.severity === 'moderate' ? 'text-orange-500' : 'text-yellow-500'
+                      }`} />
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-medium">{allergy.allergen}</h4>
+                          <Badge variant={
+                            allergy.severity === 'severe' ? 'destructive' :
+                            allergy.severity === 'moderate' ? 'outline' : 'secondary'
+                          }>
+                            {allergy.severity}
+                          </Badge>
+                        </div>
+                        {allergy.reaction && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            <span className="font-medium">Reaction:</span> {allergy.reaction}
+                          </p>
+                        )}
+                        {allergy.notes && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            <span className="font-medium">Notes:</span> {allergy.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="appointments" className="space-y-6">
+          <AppointmentForm patientId={patient.id} onAppointmentAdded={fetchPatientData} />
+          
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Scheduled Appointments</h3>
+            {appointments.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <p className="text-muted-foreground">No appointments scheduled yet</p>
+                </CardContent>
+              </Card>
+            ) : (
+              appointments.map((appointment) => (
+                <Card key={appointment.id}>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">
+                            {new Date(appointment.appointment_date).toLocaleDateString()}
+                          </span>
+                          {appointment.appointment_time && (
+                            <span className="text-muted-foreground">
+                              at {appointment.appointment_time}
+                            </span>
+                          )}
+                          <Badge variant={
+                            appointment.status === 'scheduled' ? 'default' :
+                            appointment.status === 'completed' ? 'secondary' :
+                            appointment.status === 'cancelled' ? 'destructive' : 'outline'
+                          }>
+                            {appointment.status}
+                          </Badge>
+                        </div>
+                        {appointment.purpose && (
+                          <p className="text-sm text-muted-foreground">
+                            <span className="font-medium">Purpose:</span> {appointment.purpose}
+                          </p>
+                        )}
+                        {appointment.notes && (
+                          <p className="text-sm text-muted-foreground">
+                            <span className="font-medium">Notes:</span> {appointment.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </TabsContent>
+
         <TabsContent value="visits" className="space-y-6">
           <Card>
             <CardHeader>
@@ -533,6 +761,10 @@ export default function PatientProfile() {
               ))
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="prescriptions" className="space-y-6">
+          <PrescriptionGenerator patientId={patient.id} patientName={patient.name} />
         </TabsContent>
       </Tabs>
     </div>

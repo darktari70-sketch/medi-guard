@@ -14,6 +14,156 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          patient_id: string
+          purpose: string | null
+          reminder_sent: boolean | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          purpose?: string | null
+          reminder_sent?: boolean | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          purpose?: string | null
+          reminder_sent?: boolean | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      drug_interactions: {
+        Row: {
+          created_at: string
+          description: string
+          drug_a: string
+          drug_b: string
+          id: string
+          interaction_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          drug_a: string
+          drug_b: string
+          id?: string
+          interaction_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          drug_a?: string
+          drug_b?: string
+          id?: string
+          interaction_type?: string | null
+        }
+        Relationships: []
+      }
+      medications: {
+        Row: {
+          created_at: string
+          dosage: string
+          drug_name: string
+          duration: string
+          end_date: string | null
+          frequency: string
+          id: string
+          instructions: string | null
+          notes: string | null
+          patient_id: string
+          prescribed_by: string | null
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dosage: string
+          drug_name: string
+          duration: string
+          end_date?: string | null
+          frequency: string
+          id?: string
+          instructions?: string | null
+          notes?: string | null
+          patient_id: string
+          prescribed_by?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dosage?: string
+          drug_name?: string
+          duration?: string
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          instructions?: string | null
+          notes?: string | null
+          patient_id?: string
+          prescribed_by?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      patient_allergies: {
+        Row: {
+          allergen: string
+          created_at: string
+          id: string
+          notes: string | null
+          patient_id: string
+          reaction: string | null
+          severity: string | null
+          updated_at: string
+        }
+        Insert: {
+          allergen: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          reaction?: string | null
+          severity?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allergen?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          reaction?: string | null
+          severity?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       patient_files: {
         Row: {
           file_name: string
@@ -56,11 +206,13 @@ export type Database = {
         Row: {
           address: string | null
           age: number
+          condition_diagnosis: string | null
           created_at: string
           date_of_registration: string
           gender: string
           id: string
           name: string
+          next_appointment_date: string | null
           notes: string | null
           patient_id: string
           phone: string | null
@@ -70,11 +222,13 @@ export type Database = {
         Insert: {
           address?: string | null
           age: number
+          condition_diagnosis?: string | null
           created_at?: string
           date_of_registration?: string
           gender: string
           id?: string
           name: string
+          next_appointment_date?: string | null
           notes?: string | null
           patient_id: string
           phone?: string | null
@@ -84,15 +238,62 @@ export type Database = {
         Update: {
           address?: string | null
           age?: number
+          condition_diagnosis?: string | null
           created_at?: string
           date_of_registration?: string
           gender?: string
           id?: string
           name?: string
+          next_appointment_date?: string | null
           notes?: string | null
           patient_id?: string
           phone?: string | null
           profile_picture_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      prescriptions: {
+        Row: {
+          additional_instructions: string | null
+          clinic_address: string | null
+          clinic_name: string | null
+          created_at: string
+          doctor_license: string | null
+          doctor_name: string
+          id: string
+          medication_ids: string[]
+          patient_id: string
+          prescription_date: string
+          signature_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          additional_instructions?: string | null
+          clinic_address?: string | null
+          clinic_name?: string | null
+          created_at?: string
+          doctor_license?: string | null
+          doctor_name: string
+          id?: string
+          medication_ids: string[]
+          patient_id: string
+          prescription_date?: string
+          signature_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          additional_instructions?: string | null
+          clinic_address?: string | null
+          clinic_name?: string | null
+          created_at?: string
+          doctor_license?: string | null
+          doctor_name?: string
+          id?: string
+          medication_ids?: string[]
+          patient_id?: string
+          prescription_date?: string
+          signature_path?: string | null
           updated_at?: string
         }
         Relationships: []
