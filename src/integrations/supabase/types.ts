@@ -14,13 +14,130 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      patient_files: {
+        Row: {
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          patient_id: string
+          uploaded_at: string
+        }
+        Insert: {
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          patient_id: string
+          uploaded_at?: string
+        }
+        Update: {
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          patient_id?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_files_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patients: {
+        Row: {
+          address: string | null
+          age: number
+          created_at: string
+          date_of_registration: string
+          gender: string
+          id: string
+          name: string
+          notes: string | null
+          patient_id: string
+          phone: string | null
+          profile_picture_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          age: number
+          created_at?: string
+          date_of_registration?: string
+          gender: string
+          id?: string
+          name: string
+          notes?: string | null
+          patient_id: string
+          phone?: string | null
+          profile_picture_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          age?: number
+          created_at?: string
+          date_of_registration?: string
+          gender?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          patient_id?: string
+          phone?: string | null
+          profile_picture_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      visit_notes: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string
+          patient_id: string
+          visit_date: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes: string
+          patient_id: string
+          visit_date?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string
+          patient_id?: string
+          visit_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_notes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_patient_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
