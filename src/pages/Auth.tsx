@@ -50,8 +50,8 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Patient Management System</CardTitle>
-          <CardDescription>Doctor Portal - Secure Access</CardDescription>
+          <CardTitle className="text-2xl">Chemalal 14 Clinic</CardTitle>
+          <CardDescription>Patient Management System - Doctor Portal</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

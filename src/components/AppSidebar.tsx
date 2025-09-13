@@ -10,13 +10,14 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, UserPlus, Users, LogOut, BarChart3 } from "lucide-react";
+import { LayoutDashboard, UserPlus, Users, LogOut, BarChart3, CalendarDays } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const navigation = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Register Patient", url: "/register", icon: UserPlus },
   { title: "Patients List", url: "/patients", icon: Users },
+  { title: "Appointments", url: "/appointments", icon: CalendarDays },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
 ];
 

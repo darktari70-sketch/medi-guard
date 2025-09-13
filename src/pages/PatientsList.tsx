@@ -5,7 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Eye, Phone, MapPin } from 'lucide-react';
+import { Search, Eye, Phone, MapPin, MoreVertical, Archive, Trash2 } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useToast } from '@/components/ui/use-toast';
 
 interface Patient {
   id: string;
@@ -24,6 +27,7 @@ export default function PatientsList() {
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchPatients();
@@ -62,6 +66,65 @@ export default function PatientsList() {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const archivePatient = async (patientId: string) => {
+    try {
+      const { error } = await supabase
+        .from('patients')
+        .update({ notes: 'ARCHIVED - ' + new Date().toISOString() })
+        .eq('id', patientId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Patient archived successfully",
+      });
+
+      fetchPatients();
+    } catch (error) {
+      console.error('Error archiving patient:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to archive patient",
+      });
+    }
+  };
+
+  const deletePatient = async (patientId: string) => {
+    try {
+      // Delete related records first
+      await supabase.from('appointments').delete().eq('patient_id', patientId);
+      await supabase.from('medications').delete().eq('patient_id', patientId);
+      await supabase.from('patient_allergies').delete().eq('patient_id', patientId);
+      await supabase.from('prescriptions').delete().eq('patient_id', patientId);
+      await supabase.from('visit_notes').delete().eq('patient_id', patientId);
+      await supabase.from('patient_files').delete().eq('patient_id', patientId);
+
+      // Finally delete the patient
+      const { error } = await supabase
+        .from('patients')
+        .delete()
+        .eq('id', patientId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Patient deleted successfully",
+      });
+
+      fetchPatients();
+    } catch (error) {
+      console.error('Error deleting patient:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete patient",
+      });
+    }
   };
 
   if (loading) {
@@ -173,12 +236,57 @@ export default function PatientsList() {
                     </div>
                   </div>
                   
-                  <Link to={`/patient/${patient.id}`}>
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Details
-                    </Button>
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link to={`/patient/${patient.id}`}>
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Details
+                      </Button>
+                    </Link>
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => archivePatient(patient.id)}>
+                          <Archive className="h-4 w-4 mr-2" />
+                          Archive Patient
+                        </DropdownMenuItem>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem 
+                              onSelect={(e) => e.preventDefault()}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Patient
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the patient
+                                and all related data including appointments, medications, and visit notes.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => deletePatient(patient.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </CardContent>
             </Card>
