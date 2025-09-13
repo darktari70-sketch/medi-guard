@@ -22,9 +22,10 @@ interface Medication {
 interface PrescriptionGeneratorProps {
   patientId: string;
   patientName: string;
+  onPrescriptionGenerated?: () => void;
 }
 
-export default function PrescriptionGenerator({ patientId, patientName }: PrescriptionGeneratorProps) {
+export default function PrescriptionGenerator({ patientId, patientName, onPrescriptionGenerated }: PrescriptionGeneratorProps) {
   const { toast } = useToast();
   const [medications, setMedications] = useState<Medication[]>([]);
   const [selectedMedications, setSelectedMedications] = useState<string[]>([]);
@@ -104,6 +105,7 @@ export default function PrescriptionGenerator({ patientId, patientName }: Prescr
 
       e.currentTarget.reset();
       setSelectedMedications([]);
+      onPrescriptionGenerated?.();
     } catch (error: any) {
       toast({
         variant: "destructive",

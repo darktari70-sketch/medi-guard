@@ -39,7 +39,7 @@ export default function Appointments() {
         .from('appointments')
         .select(`
           *,
-          patients (
+          patients!inner (
             name,
             phone,
             age
@@ -49,7 +49,7 @@ export default function Appointments() {
         .order('appointment_time', { ascending: true });
 
       if (error) throw error;
-      setAppointments((data as any[])?.filter(apt => apt.patients) || []);
+      setAppointments((data as any) || []);
     } catch (error) {
       console.error('Error fetching appointments:', error);
       toast({
@@ -162,21 +162,23 @@ export default function Appointments() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      <span className="font-medium">{appointment.patients.name}</span>
+                      <span className="font-medium">{appointment.patients?.name}</span>
                       <Badge variant={getStatusBadgeVariant(appointment.status)}>
                         {appointment.status}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {appointment.appointment_time}
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {appointment.appointment_time || 'No time set'}
+                        </div>
+                        {appointment.patients?.phone && (
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {appointment.patients.phone}
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Phone className="h-3 w-3" />
-                        {appointment.patients.phone}
-                      </div>
-                    </div>
                     {appointment.purpose && (
                       <p className="text-sm">{appointment.purpose}</p>
                     )}
@@ -233,7 +235,7 @@ export default function Appointments() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      <span className="font-medium">{appointment.patients.name}</span>
+                      <span className="font-medium">{appointment.patients?.name}</span>
                       <Badge variant={getStatusBadgeVariant(appointment.status)}>
                         {appointment.status}
                       </Badge>
@@ -243,14 +245,16 @@ export default function Appointments() {
                         <Calendar className="h-3 w-3" />
                         {format(new Date(appointment.appointment_date), 'MMM dd, yyyy')}
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {appointment.appointment_time}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Phone className="h-3 w-3" />
-                        {appointment.patients.phone}
-                      </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {appointment.appointment_time || 'No time set'}
+                        </div>
+                        {appointment.patients?.phone && (
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {appointment.patients.phone}
+                          </div>
+                        )}
                     </div>
                     {appointment.purpose && (
                       <p className="text-sm">{appointment.purpose}</p>

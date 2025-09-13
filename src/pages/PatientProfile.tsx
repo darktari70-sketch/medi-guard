@@ -14,7 +14,7 @@ import { ArrowLeft, Edit, Save, Plus, Download, FileText, Calendar, Phone, MapPi
 import MedicationForm from '@/components/MedicationForm';
 import AllergyForm from '@/components/AllergyForm';
 import AppointmentForm from '@/components/AppointmentForm';
-import PrescriptionGenerator from '@/components/PrescriptionGenerator';
+import PrescriptionList from '@/components/PrescriptionList';
 
 interface Patient {
   id: string;
@@ -764,7 +764,7 @@ export default function PatientProfile() {
         </TabsContent>
 
         <TabsContent value="prescriptions" className="space-y-6">
-          <PrescriptionGenerator patientId={patient.id} patientName={patient.name} />
+          <PrescriptionList patientId={patient.id} patientName={patient.name} />
         </TabsContent>
       </Tabs>
     </div>
